@@ -26,6 +26,11 @@ header {
   margin-bottom: 32px;
 }
 
+button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
 .back-btn {
   background: none;
   border: none;

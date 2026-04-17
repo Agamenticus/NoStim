@@ -3,6 +3,8 @@
   "name": "NoStim",
   "version": "1.0.0",
   "description": "Stay focused by blocking distracting sites. No stim lock in.",
+  "homepage_url": "https://github.com/Agamenticus/NoStim",
+  "author": "Evan Rankin",
   "permissions": [
     "storage",
     "declarativeNetRequest",
