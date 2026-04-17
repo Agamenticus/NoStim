@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NoStim — Settings</title>
+  <link rel="stylesheet" href="../themes.css">
+  <link rel="stylesheet" href="dashboard.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="header-title">
+        <span class="medieval-decor">&#9876;</span>
+        <h1>NoStim</h1>
+        <span class="medieval-decor">&#9876;</span>
+      </div>
+      <span class="subtitle">Settings</span>
+    </header>
+
+    <button class="sound-btn" id="sound-btn" title="Toggle sound" style="display:none">
+      <svg class="sound-icon-off" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+        <line x1="23" y1="9" x2="17" y2="15"/>
+        <line x1="17" y1="9" x2="23" y2="15"/>
+      </svg>
+      <svg class="sound-icon-on" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+        <path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
+        <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
+      </svg>
+    </button>
+
+    <section class="theme-section">
+      <h2 id="theme-heading">Theme</h2>
+      <div class="theme-picker" id="theme-picker">
+        <button class="theme-btn" data-pick="medieval"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m11 19-6-6"/><path d="m5 21-2-2"/><path d="m8 16-4 4"/><path d="M9.5 17.5 21 6V3h-3L6.5 14.5"/></svg> Medieval</button>
+        <button class="theme-btn" data-pick="light"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg> Light</button>
+        <button class="theme-btn" data-pick="dark"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9z"/></svg> Dark</button>
+        <button class="theme-btn" data-pick="earth"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg> Earth</button>
+        <button class="theme-btn" data-pick="default"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/></svg> Boring</button>
+      </div>
+    </section>
+
+    <section class="toggles">
+      <div class="toggle-row">
+        <div class="toggle-info">
+          <span class="toggle-label">Focus Mode</span>
+          <span class="toggle-status" id="focus-status">OFF</span>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="focus-toggle">
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="toggle-row">
+        <div class="toggle-info">
+          <span class="toggle-label">Tab Eliminator</span>
+          <span class="toggle-status" id="tab-elim-status">OFF</span>
+        </div>
+        <div class="tab-elim-actions">
+          <button class="icon-btn tab-elim-gear" id="tab-elim-gear" title="Tab Eliminator settings">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20 7h-9"/><path d="M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/>
+            </svg>
+          </button>
+          <label class="switch">
+            <input type="checkbox" id="tab-elim-toggle">
+            <span class="slider"></span>
+          </label>
+        </div>
+      </div>
+
+      <div class="toggle-row">
+        <div class="toggle-info">
+          <span class="toggle-label">LinkedIn Shield <span class="info-badge" data-tip="Blocks LinkedIn from detecting your installed browser extensions. It intercepts fingerprinting probes, sanitizes DOM scans, and blocks tracking endpoints like li.protechts.net and sensorCollect.">i</span></span>
+          <span class="toggle-status" id="shield-status">ON</span>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="shield-toggle" checked>
+          <span class="slider"></span>
+        </label>
+      </div>
+    </section>
+
+    <section class="sites-section">
+      <h2 id="sites-heading">Blocked Sites</h2>
+      <div class="add-site">
+        <input type="text" id="site-input" placeholder="e.g. youtube">
+        <button id="add-btn" title="Add site">+</button>
+      </div>
+      <ul id="sites-list"></ul>
+      <p class="site-count" id="site-count"></p>
+    </section>
+  </div>
+
+  <script src="../utils.js"></script>
+  <script src="dashboard.js"></script>
+</body>
+</html>

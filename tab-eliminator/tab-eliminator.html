@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NoStim — Tab Eliminator</title>
+  <link rel="stylesheet" href="../themes.css">
+  <link rel="stylesheet" href="tab-eliminator.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <button class="back-btn" id="back-btn" title="Back">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="19" y1="12" x2="5" y2="12"/>
+          <polyline points="12 19 5 12 12 5"/>
+        </svg>
+      </button>
+      <div>
+        <h1>Tab Eliminator</h1>
+        <p class="description">Automatically close tabs that haven't been active in a while. Pinned tabs and preserved URLs are always safe.</p>
+      </div>
+    </header>
+
+    <section class="toggles">
+      <div class="toggle-row">
+        <div class="toggle-info">
+          <span class="toggle-label">Enable Tab Eliminator</span>
+          <span class="toggle-status" id="tab-elim-status">OFF</span>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="tab-elim-toggle">
+          <span class="slider"></span>
+        </label>
+      </div>
+    </section>
+
+    <section class="days-section">
+      <h2>Idle Threshold</h2>
+      <div class="days-row">
+        <span>Close tabs inactive for</span>
+        <input type="number" id="days-input" min="1" max="30" value="3">
+        <span>days</span>
+      </div>
+    </section>
+
+    <section class="preserved-section">
+      <h2>Preserved URLs</h2>
+      <p class="hint">Tabs matching these domains will never be auto-closed.</p>
+      <div class="add-site">
+        <input type="text" id="preserve-input" placeholder="e.g. github">
+        <button id="add-preserve-btn" title="Add URL">+</button>
+      </div>
+      <ul id="preserved-list"></ul>
+    </section>
+
+    <section class="history-section">
+      <div class="history-header">
+        <h2>Closed Tabs</h2>
+        <span class="closed-count" id="closed-count"></span>
+      </div>
+      <div class="history-list" id="history-list"></div>
+    </section>
+  </div>
+
+  <script src="../utils.js"></script>
+  <script src="tab-eliminator.js"></script>
+</body>
+</html>

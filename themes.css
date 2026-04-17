@@ -1,0 +1,112 @@
+@import url('https://fonts.googleapis.com/css2?family=MedievalSharp&display=swap');
+
+/* Medieval Theme (default) */
+:root,
+[data-theme="medieval"] {
+  --bg: #1a1209;
+  --card: #2c1e0f;
+  --text: #d4a855;
+  --text-muted: #8a6d3b;
+  --accent: #8b0000;
+  --accent-text: #d4a855;
+  --tag: #3d2b14;
+  --tag-text: #c9a84c;
+  --input: #3d2b14;
+  --input-text: #c9a84c;
+  --input-placeholder: #6b5530;
+  --toggle-on: #8b0000;
+  --toggle-off: #3d2b14;
+  --toggle-thumb: #d4a855;
+  --border: #5a3e1b;
+  --font: 'MedievalSharp', cursive, serif;
+}
+
+/* Dark Theme */
+[data-theme="dark"] {
+  --bg: #0d0d0d;
+  --card: #1a1a1a;
+  --text: #e0e0e0;
+  --text-muted: #666666;
+  --accent: #6366f1;
+  --accent-text: #ffffff;
+  --tag: #262626;
+  --tag-text: #a0a0a0;
+  --input: #262626;
+  --input-text: #c0c0c0;
+  --input-placeholder: #555555;
+  --toggle-on: #6366f1;
+  --toggle-off: #333333;
+  --toggle-thumb: #ffffff;
+  --border: #333333;
+  --font: system-ui, -apple-system, sans-serif;
+}
+
+/* Light Theme */
+[data-theme="light"] {
+  --bg: #f8f9fa;
+  --card: #ffffff;
+  --text: #1a1a2e;
+  --text-muted: #6c757d;
+  --accent: #0d6efd;
+  --accent-text: #ffffff;
+  --tag: #e9ecef;
+  --tag-text: #495057;
+  --input: #e9ecef;
+  --input-text: #495057;
+  --input-placeholder: #adb5bd;
+  --toggle-on: #0d6efd;
+  --toggle-off: #ced4da;
+  --toggle-thumb: #ffffff;
+  --border: #dee2e6;
+  --font: system-ui, -apple-system, sans-serif;
+}
+
+/* Boring Theme */
+[data-theme="default"] {
+  --bg: #1a2332;
+  --card: #243447;
+  --text: #ffffff;
+  --text-muted: #8899aa;
+  --accent: #4caf50;
+  --accent-text: #ffffff;
+  --tag: #2a3a4d;
+  --tag-text: #c0d0e0;
+  --input: #2a3a4d;
+  --input-text: #c0d0e0;
+  --input-placeholder: #667788;
+  --toggle-on: #4caf50;
+  --toggle-off: #3a4a5d;
+  --toggle-thumb: #ffffff;
+  --border: #2a3a4d;
+  --font: system-ui, -apple-system, sans-serif;
+}
+
+/* Earth Theme */
+[data-theme="earth"] {
+  --bg: #1a2e1a;
+  --card: #243324;
+  --text: #c8e6c9;
+  --text-muted: #6b8f6b;
+  --accent: #e07830;
+  --accent-text: #ffffff;
+  --tag: #2d3f2d;
+  --tag-text: #a5d6a7;
+  --input: #2d3f2d;
+  --input-text: #a5d6a7;
+  --input-placeholder: #5a7a5a;
+  --toggle-on: #e07830;
+  --toggle-off: #2d3f2d;
+  --toggle-thumb: #fef3c7;
+  --border: #3a5a3a;
+  --font: system-ui, -apple-system, sans-serif;
+}
+
+/* Medieval-only decorations */
+.medieval-decor {
+  display: none;
+  color: var(--text-muted);
+}
+
+[data-theme="medieval"] .medieval-decor {
+  display: inline;
+}
