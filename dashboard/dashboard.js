@@ -9,7 +9,6 @@ const addBtn = document.getElementById("add-btn");
 const sitesList = document.getElementById("sites-list");
 const siteCount = document.getElementById("site-count");
 const themePicker = document.getElementById("theme-picker");
-const sitesHeading = document.getElementById("sites-heading");
 const soundBtn = document.getElementById("sound-btn");
 const tabElimStatus = document.getElementById("tab-elim-status");
 const tabElimGear = document.getElementById("tab-elim-gear");
@@ -18,21 +17,6 @@ const tabElimToggle = document.getElementById("tab-elim-toggle");
 let blockedSites = [];
 let currentTheme = "default";
 let soundEnabled = false;
-
-// --- Theme Config ---
-
-const themeText = {
-  default:  { heading: "Blocked Sites", placeholder: "e.g. youtube" },
-  medieval: { heading: "Forbidden Scrolls", placeholder: "e.g. cursed parchment" },
-  dark:     { heading: "Blocked Sites", placeholder: "e.g. youtube" },
-  light:    { heading: "Blocked Sites", placeholder: "e.g. youtube" },
-  earth:    { heading: "Blocked Sites", placeholder: "e.g. youtube" },
-};
-
-const themeNames = {
-  default:  { medieval: "Medieval", light: "Light", dark: "Dark", earth: "Earth", default: "Boring" },
-  medieval: { medieval: "Medieval", light: "Holy", dark: "Shadow", earth: "Druid", default: "Peasant" },
-};
 
 // --- Init ---
 
@@ -63,21 +47,7 @@ init();
 
 function applyTheme(theme) {
   currentTheme = theme;
-  document.body.dataset.theme = theme;
-
-  const text = themeText[theme] || themeText.default;
-  sitesHeading.textContent = text.heading;
-  siteInput.placeholder = text.placeholder;
-
-  const names = themeNames[theme] || themeNames.default;
-  themePicker.querySelectorAll(".theme-btn").forEach((btn) => {
-    btn.classList.toggle("active", btn.dataset.pick === theme);
-    const svg = btn.querySelector("svg");
-    if (svg && names[btn.dataset.pick]) {
-      svg.nextSibling.textContent = " " + names[btn.dataset.pick];
-    }
-  });
-
+  applyThemeShared(theme);
   soundBtn.style.display = theme === "medieval" ? "block" : "none";
 }
 

@@ -110,3 +110,18 @@
 [data-theme="medieval"] .medieval-decor {
   display: inline;
 }
+
+/* Medieval-only: wield a sword across every extension page.
+   Path is relative to this stylesheet (root), so it resolves the same
+   no matter which page loads it. Hotspot (3 3) sits on the blade tip. */
+[data-theme="medieval"],
+[data-theme="medieval"] * {
+  cursor: url('icons/sword-cursor.png') 3 3, auto !important;
+}
+
+/* Keep a usable caret in text fields so typing URLs still works.
+   Higher specificity + !important wins over the blanket rule above. */
+[data-theme="medieval"] input,
+[data-theme="medieval"] textarea {
+  cursor: text !important;
+}

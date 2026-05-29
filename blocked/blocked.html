@@ -4,89 +4,236 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>NoStim — Stay Focused</title>
+  <link rel="stylesheet" href="../themes.css">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html, body { min-height: 100%; }
 
     body {
       min-height: 100vh;
       display: flex;
       align-items: center;
       justify-content: center;
-      background: #1a1a2e;
-      color: #e0e0e0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      padding: 24px;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      position: relative;
+      overflow: hidden;
+      opacity: 0;
+      transition: opacity 0.45s ease;
+    }
+
+    body.ready { opacity: 1; }
+
+    /* Ambient accent glow — atmosphere, themed by --accent */
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      background:
+        radial-gradient(60vw 60vw at 50% -10%,
+          color-mix(in srgb, var(--accent) 16%, transparent), transparent 60%),
+        radial-gradient(45vw 45vw at 50% 115%,
+          color-mix(in srgb, var(--accent) 10%, transparent), transparent 60%);
+      animation: glow 9s ease-in-out infinite;
+    }
+
+    @keyframes glow {
+      0%, 100% { opacity: 0.75; }
+      50%      { opacity: 1; }
     }
 
     .card {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 460px;
       text-align: center;
-      max-width: 420px;
-      padding: 48px 32px;
+      padding: clamp(36px, 6vw, 56px) clamp(24px, 5vw, 48px);
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      box-shadow: 0 30px 80px -28px rgba(0, 0, 0, 0.55);
+      opacity: 0;
+      transform: translateY(12px) scale(0.985);
+      transition: transform 0.55s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.55s ease;
     }
 
-    .shield {
-      font-size: 64px;
-      margin-bottom: 24px;
-      display: block;
+    body.ready .card { opacity: 1; transform: none; }
+
+    /* Icon badge — breathes gently, like a focus cue */
+    .badge {
+      width: 92px;
+      height: 92px;
+      margin: 0 auto 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      background: color-mix(in srgb, var(--accent) 14%, transparent);
+      border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+      animation: breathe 6s ease-in-out infinite;
     }
+
+    @keyframes breathe {
+      0%, 100% { transform: scale(1); }
+      50%      { transform: scale(1.06); }
+    }
+
+    .badge svg { width: 42px; height: 42px; color: var(--accent); }
+
+    /* Per-theme icon swap (CSS-driven, no flash) */
+    .ico { display: none; }
+    .ico-shield { display: block; }
+    [data-theme="medieval"] .ico-shield { display: none; }
+    [data-theme="medieval"] .ico-swords { display: block; }
+    [data-theme="earth"] .ico-shield { display: none; }
+    [data-theme="earth"] .ico-leaf { display: block; }
 
     h1 {
-      font-size: 28px;
+      font-size: clamp(26px, 4.5vw, 34px);
       font-weight: 700;
-      color: #fff;
-      margin-bottom: 12px;
+      color: var(--text);
+      margin-bottom: 10px;
+      letter-spacing: 0.3px;
     }
 
-    .blocked-site {
-      display: inline-block;
-      background: #16213e;
-      border: 1px solid #2a2a4a;
-      border-radius: 8px;
-      padding: 6px 16px;
+    .subtitle {
       font-size: 15px;
-      color: #f44336;
-      font-weight: 600;
-      margin-bottom: 20px;
+      line-height: 1.55;
+      color: var(--text-muted);
+      max-width: 34ch;
+      margin: 0 auto;
     }
 
-    .timer {
-      font-size: 14px;
-      color: #888;
-      margin-bottom: 32px;
+    /* Medieval-only ornament */
+    .flourish { display: none; }
+    [data-theme="medieval"] .flourish {
+      display: block;
+      color: var(--text-muted);
+      font-size: 20px;
+      margin: 20px 0 4px;
     }
 
-    .timer span {
-      color: #4caf50;
+    .divider {
+      width: 64px;
+      height: 1px;
+      background: var(--border);
+      margin: 26px auto;
+    }
+    [data-theme="medieval"] .divider { display: none; }
+
+    /* Focus streak — the hero */
+    .streak-label {
+      display: block;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+
+    .streak-time {
+      font-size: clamp(40px, 8vw, 52px);
+      font-weight: 700;
+      line-height: 1;
+      color: var(--accent);
+      font-variant-numeric: tabular-nums;
+      letter-spacing: 1px;
+    }
+
+    .site-note {
+      margin-top: 26px;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .site-chip {
+      display: inline-block;
+      padding: 3px 12px;
+      border-radius: 999px;
+      background: var(--tag);
+      border: 1px solid var(--border);
+      color: var(--tag-text);
+      font-size: 13px;
       font-weight: 600;
     }
 
     .break-btn {
-      padding: 10px 24px;
-      border: 1px solid #333;
-      border-radius: 8px;
+      margin-top: 22px;
+      padding: 11px 26px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
       background: transparent;
-      color: #888;
+      color: var(--text-muted);
       font-size: 13px;
+      font-family: var(--font);
       cursor: pointer;
-      transition: all 0.2s;
+      transition: color 0.2s, border-color 0.2s, background 0.2s;
     }
 
-    .break-btn:hover {
-      border-color: #4caf50;
-      color: #4caf50;
+    .break-btn:hover:not(:disabled) {
+      color: var(--accent-text);
+      background: var(--accent);
+      border-color: var(--accent);
     }
 
-    .break-btn:disabled {
-      opacity: 0.4;
-      cursor: default;
+    .break-btn:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    .break-btn:disabled { opacity: 0.5; cursor: default; }
+
+    @media (prefers-reduced-motion: reduce) {
+      body { transition: opacity 0.2s ease; }
+      .card { transition: opacity 0.2s ease; transform: none; }
+      .badge, body::before { animation: none; }
     }
   </style>
 </head>
 <body>
   <div class="card">
-    <span class="shield">&#128737;</span>
-    <h1>Stay focused!</h1>
-    <div class="blocked-site" id="site-name"></div>
-    <p class="timer">You've been focused for <span id="elapsed">0:00</span></p>
+    <div class="badge">
+      <!-- Shield — default / dark / light -->
+      <svg class="ico ico-shield" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/>
+      </svg>
+      <!-- Crossed swords — medieval -->
+      <svg class="ico ico-swords" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <polyline points="14.5 17.5 3 6 3 3 6 3 17.5 14.5"/>
+        <line x1="13" x2="19" y1="19" y2="13"/>
+        <line x1="16" x2="20" y1="16" y2="20"/>
+        <line x1="19" x2="21" y1="21" y2="19"/>
+        <polyline points="14.5 6.5 18 3 21 3 21 6 17.5 9.5"/>
+        <line x1="5" x2="9" y1="14" y2="18"/>
+        <line x1="7" x2="4" y1="17" y2="20"/>
+        <line x1="3" x2="5" y1="19" y2="21"/>
+      </svg>
+      <!-- Leaf — earth -->
+      <svg class="ico ico-leaf" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/>
+        <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/>
+      </svg>
+    </div>
+
+    <h1 id="title">Stay focused</h1>
+    <p class="subtitle" id="subtitle">This site is blocked while Focus Mode is on.</p>
+
+    <div class="flourish" aria-hidden="true">&#9884;</div>
+    <div class="divider" aria-hidden="true"></div>
+
+    <div class="streak">
+      <span class="streak-label" id="streak-label">You've been focused for</span>
+      <div class="streak-time" id="elapsed">0:00</div>
+    </div>
+
+    <p class="site-note"><span id="site-note">Trying to reach </span><span class="site-chip" id="site-name"></span></p>
+
     <button class="break-btn" id="break-btn">Take a 5-minute break</button>
   </div>
 

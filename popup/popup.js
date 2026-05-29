@@ -9,7 +9,6 @@ const seeAllBtn = document.getElementById("see-all-btn");
 const gearBtn = document.getElementById("gear-btn");
 const paletteBtn = document.getElementById("palette-btn");
 const themePicker = document.getElementById("theme-picker");
-const sitesHeading = document.getElementById("sites-heading");
 const tabStatus = document.getElementById("tab-status");
 const preserveBtn = document.getElementById("preserve-btn");
 const preserveBtnText = document.getElementById("preserve-btn-text");
@@ -18,21 +17,6 @@ let blockedSites = [];
 let currentTheme = "default";
 let soundEnabled = false;
 let tabIsPreserved = false;
-
-// --- Theme Config ---
-
-const themeText = {
-  default:  { heading: "Blocked Sites", placeholder: "e.g. youtube" },
-  medieval: { heading: "Forbidden Scrolls", placeholder: "e.g. cursed parchment" },
-  dark:     { heading: "Blocked Sites", placeholder: "e.g. youtube" },
-  light:    { heading: "Blocked Sites", placeholder: "e.g. youtube" },
-  earth:    { heading: "Blocked Sites", placeholder: "e.g. youtube" },
-};
-
-const themeNames = {
-  default:  { medieval: "Medieval", light: "Light", dark: "Dark", earth: "Earth", default: "Boring" },
-  medieval: { medieval: "Medieval", light: "Holy", dark: "Shadow", earth: "Druid", default: "Peasant" },
-};
 
 // --- Init ---
 
@@ -74,23 +58,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 function applyTheme(theme) {
   currentTheme = theme;
-  document.body.dataset.theme = theme;
-
-  // Update theme-specific text
-  const text = themeText[theme] || themeText.default;
-  sitesHeading.textContent = text.heading;
-  siteInput.placeholder = text.placeholder;
-
-  // Mark active button and update names
-  const names = themeNames[theme] || themeNames.default;
-  themePicker.querySelectorAll(".theme-btn").forEach((btn) => {
-    btn.classList.toggle("active", btn.dataset.pick === theme);
-    // Update text node (after the SVG)
-    const svg = btn.querySelector("svg");
-    if (svg && names[btn.dataset.pick]) {
-      svg.nextSibling.textContent = " " + names[btn.dataset.pick];
-    }
-  });
+  applyThemeShared(theme);
 
   // Update preserve/spare text if visible
   if (preserveBtn.style.display !== "none") {
