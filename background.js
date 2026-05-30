@@ -119,42 +119,26 @@ async function updateDistractionRules(sites) {
     .filter((r) => r.id >= DISTRACTION_RULE_OFFSET)
     .map((r) => r.id);
 
-  const newRules = [];
-
-  if (sites.length > 0) {
-    // Exempt our own extension pages from the redirect rules below. The block
-    // page carries the site in its query (?site=reddit.com), which would
-    // otherwise re-match "||reddit.com" and Chrome aborts the self-redirect as
-    // ERR_BLOCKED_BY_CLIENT. A higher-priority allow rule wins, so the block
-    // page (and any extension page) always loads.
-    newRules.push({
-      id: DISTRACTION_RULE_OFFSET,
-      priority: 2,
-      action: { type: "allow" },
-      condition: {
-        urlFilter: "|chrome-extension://" + chrome.runtime.id + "/",
-        resourceTypes: ["main_frame"]
+  // Match on the request's HOST via requestDomains (covers the domain and its
+  // subdomains), NOT a URL substring. Our own block page carries the site only
+  // in its ?site= query — its host is the extension ID — so the redirect rule
+  // can never match the block page, eliminating the self-redirect that Chrome
+  // aborts as ERR_BLOCKED_BY_CLIENT. This also avoids false matches such as
+  // google.com/search?q=youtube.com that "||youtube.com" would have caught.
+  const newRules = sites.map((site, i) => ({
+    id: DISTRACTION_RULE_OFFSET + i,
+    priority: 1,
+    action: {
+      type: "redirect",
+      redirect: {
+        extensionPath: "/blocked/blocked.html?site=" + encodeURIComponent(site)
       }
-    });
-
-    sites.forEach((site, i) => {
-      newRules.push({
-        id: DISTRACTION_RULE_OFFSET + 1 + i,
-        priority: 1,
-        action: {
-          type: "redirect",
-          redirect: {
-            extensionPath:
-              "/blocked/blocked.html?site=" + encodeURIComponent(site)
-          }
-        },
-        condition: {
-          urlFilter: "||" + site,
-          resourceTypes: ["main_frame"]
-        }
-      });
-    });
-  }
+    },
+    condition: {
+      requestDomains: [site],
+      resourceTypes: ["main_frame"]
+    }
+  }));
 
   await chrome.declarativeNetRequest.updateDynamicRules({
     removeRuleIds: distractionIds,
