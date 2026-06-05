@@ -9,6 +9,7 @@
     "storage",
     "declarativeNetRequest",
     "tabs",
+    "webNavigation",
     "alarms"
   ],
   "host_permissions": [
@@ -22,19 +23,17 @@
       "matches": ["*://*.linkedin.com/*"],
       "js": ["content-scripts/linkedin-shield-bridge.js"],
       "run_at": "document_start",
-      "world": "ISOLATED"
+      "world": "ISOLATED",
+      "all_frames": true,
+      "match_about_blank": true
     },
     {
       "matches": ["*://*.linkedin.com/*"],
       "js": ["content-scripts/linkedin-shield.js"],
       "run_at": "document_start",
-      "world": "MAIN"
-    }
-  ],
-  "web_accessible_resources": [
-    {
-      "resources": ["blocked/blocked.html"],
-      "matches": ["<all_urls>"]
+      "world": "MAIN",
+      "all_frames": true,
+      "match_about_blank": true
     }
   ],
   "action": {

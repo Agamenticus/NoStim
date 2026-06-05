@@ -5,17 +5,23 @@
 (function () {
   "use strict";
 
-  // Read toggle flag set by the bridge script (ISOLATED world).
-  // Default to ON if missing — safer to block than to miss probes.
-  const flag = document.documentElement.dataset.focusguardShield;
-  if (flag === "off") return;
+  // The shield is checked at CALL TIME, not once at startup. The bridge
+  // (ISOLATED world) reads chrome.storage asynchronously, so the flag may not
+  // be set yet when this MAIN-world script runs at document_start. Reading it
+  // per-call means: we default to ON before the flag lands (safer — block
+  // probes), and we genuinely honor an OFF toggle once the bridge sets it
+  // (which happens long before LinkedIn's scanner fires). Runs in every frame
+  // (all_frames) so subframe / fresh-realm probes can't dodge the override.
+  function shieldOn() {
+    return document.documentElement.dataset.focusguardShield !== "off";
+  }
 
   // --- 1. Override fetch() ---
   const originalFetch = window.fetch;
   window.fetch = function (resource, init) {
     const url =
       resource instanceof Request ? resource.url : String(resource);
-    if (url.startsWith("chrome-extension://")) {
+    if (shieldOn() && url.startsWith("chrome-extension://")) {
       return Promise.reject(new TypeError("Failed to fetch"));
     }
     return originalFetch.apply(this, arguments);
@@ -24,7 +30,7 @@
   // --- 2. Override XMLHttpRequest ---
   const originalOpen = XMLHttpRequest.prototype.open;
   XMLHttpRequest.prototype.open = function (method, url) {
-    if (String(url).startsWith("chrome-extension://")) {
+    if (shieldOn() && String(url).startsWith("chrome-extension://")) {
       // Store a flag so send() becomes a no-op that fires an error event
       this._focusguardBlocked = true;
       // Still call original open with a safe URL so internal state is valid
@@ -73,6 +79,8 @@
     const batch = pendingMutations;
     pendingMutations = [];
     flushScheduled = false;
+
+    if (!shieldOn()) return; // honor the OFF toggle
 
     for (const mutation of batch) {
       for (const added of mutation.addedNodes) {

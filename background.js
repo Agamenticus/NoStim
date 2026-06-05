@@ -82,19 +82,16 @@ chrome.runtime.onStartup.addListener(async () => {
 });
 
 async function syncAllRules() {
-  const data = await chrome.storage.local.get([
-    "focusModeEnabled",
-    "blockedSites",
-    "linkedinShieldEnabled"
-  ]);
+  const data = await chrome.storage.local.get(["linkedinShieldEnabled"]);
 
   await updateLinkedInRules(data.linkedinShieldEnabled !== false);
 
-  if (data.focusModeEnabled) {
-    await updateDistractionRules(data.blockedSites || []);
-  } else {
-    await clearDistractionRules();
-  }
+  // Distraction blocking is now handled by webNavigation (browser-initiated
+  // redirect — no web_accessible_resources needed, so NoStim stays invisible to
+  // extension fingerprinting). Remove any legacy DNR redirect rules left behind
+  // by versions <= 1.2.0.
+  await clearDistractionRules();
+  await loadDistractionState();
 }
 
 // --- LinkedIn Shield Rules ---
@@ -111,40 +108,86 @@ async function updateLinkedInRules(enabled) {
   });
 }
 
-// --- Distraction Blocker Rules ---
+// --- Distraction Blocker (webNavigation-based) ---
+//
+// We redirect blocked-site navigations to the block page via a browser-
+// initiated chrome.tabs.update() in webNavigation.onBeforeNavigate, NOT a
+// declarativeNetRequest redirect to an extension page. A DNR redirect would
+// require listing blocked.html in web_accessible_resources, which exposes a
+// stable chrome-extension:// URL that LinkedIn's (and anyone's) extension
+// fingerprinting can probe. With zero web-accessible resources, Chrome's own
+// anonymization makes every probe to our extension fail identically — we are
+// invisible by construction. A browser-initiated navigation can load an
+// extension page without it being web-accessible, so this fixes the clicked-
+// link case too.
 
-async function updateDistractionRules(sites) {
-  const existing = await chrome.declarativeNetRequest.getDynamicRules();
-  const distractionIds = existing
-    .filter((r) => r.id >= DISTRACTION_RULE_OFFSET)
-    .map((r) => r.id);
+// In-memory cache so onBeforeNavigate can decide fast (rehydrated on SW wake).
+let distractionState = null;
 
-  // Match on the request's HOST via requestDomains (covers the domain and its
-  // subdomains), NOT a URL substring. Our own block page carries the site only
-  // in its ?site= query — its host is the extension ID — so the redirect rule
-  // can never match the block page, eliminating the self-redirect that Chrome
-  // aborts as ERR_BLOCKED_BY_CLIENT. This also avoids false matches such as
-  // google.com/search?q=youtube.com that "||youtube.com" would have caught.
-  const newRules = sites.map((site, i) => ({
-    id: DISTRACTION_RULE_OFFSET + i,
-    priority: 1,
-    action: {
-      type: "redirect",
-      redirect: {
-        extensionPath: "/blocked/blocked.html?site=" + encodeURIComponent(site)
-      }
-    },
-    condition: {
-      requestDomains: [site],
-      resourceTypes: ["main_frame"]
-    }
-  }));
-
-  await chrome.declarativeNetRequest.updateDynamicRules({
-    removeRuleIds: distractionIds,
-    addRules: newRules
-  });
+async function loadDistractionState() {
+  const d = await chrome.storage.local.get([
+    "focusModeEnabled",
+    "blockedSites",
+    "siteBreaks"
+  ]);
+  distractionState = {
+    enabled: !!d.focusModeEnabled,
+    sites: d.blockedSites || [],
+    breaks: d.siteBreaks || {}
+  };
+  return distractionState;
 }
+
+// Host matches a blocked site if it equals the site or is a subdomain of it.
+// (Mirrors the old requestDomains semantics — domain + subdomains, host-based,
+// so "google.com/search?q=youtube.com" never matches "youtube.com".)
+function matchBlockedSite(host, sites) {
+  host = host.toLowerCase();
+  for (const raw of sites) {
+    const site = String(raw).toLowerCase().replace(/^www\./, "");
+    if (host === site || host.endsWith("." + site)) return site;
+  }
+  return null;
+}
+
+chrome.webNavigation.onBeforeNavigate.addListener(async (details) => {
+  if (details.frameId !== 0) return; // top-level navigations only
+  if (!/^https?:\/\//i.test(details.url)) return; // ignore extension/chrome/about
+
+  const state = distractionState || (await loadDistractionState());
+  if (!state.enabled) return;
+
+  let host;
+  try {
+    host = new URL(details.url).hostname;
+  } catch (_) {
+    return;
+  }
+
+  const site = matchBlockedSite(host, state.sites);
+  if (!site) return;
+
+  // Honor an active 5-minute break for this site.
+  if ((state.breaks[site] || 0) > Date.now()) return;
+
+  const target = chrome.runtime.getURL(
+    "blocked/blocked.html?site=" + encodeURIComponent(site)
+  );
+  // Browser-initiated navigation — no web_accessible_resources required.
+  // Swallow rejections: the tab may be gone/discarded/prerendered by now.
+  chrome.tabs.update(details.tabId, { url: target }).catch(() => {});
+});
+
+// Keep the cache fresh as state changes (toggle, blocklist edits, breaks).
+chrome.storage.onChanged.addListener((changes, area) => {
+  if (area !== "local") return;
+  if (changes.focusModeEnabled || changes.blockedSites || changes.siteBreaks) {
+    loadDistractionState();
+  }
+});
+
+// Hydrate on service-worker start.
+loadDistractionState();
 
 async function clearDistractionRules() {
   const existing = await chrome.declarativeNetRequest.getDynamicRules();
@@ -321,15 +364,9 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
     await runTabCleanup();
   } else if (alarm.name === "clearBadge") {
     chrome.action.setBadgeText({ text: "" });
-  } else if (alarm.name.startsWith("breakEnd_")) {
-    const current = await chrome.storage.local.get([
-      "blockedSites",
-      "focusModeEnabled"
-    ]);
-    if (current.focusModeEnabled) {
-      await updateDistractionRules(current.blockedSites || []);
-    }
   }
+  // Legacy "breakEnd_*" alarms (<= 1.2.0) are now no-ops; per-site breaks
+  // expire via timestamp in onBeforeNavigate. They clear themselves after firing.
 });
 
 // --- Message Handling ---
@@ -366,16 +403,14 @@ async function handleMessage(msg) {
       return { success: true };
 
     case "toggleFocusMode": {
-      const updates = { focusModeEnabled: msg.enabled };
-      if (msg.enabled) {
-        updates.focusModeStartTime = Date.now();
-        const data = await chrome.storage.local.get("blockedSites");
-        await updateDistractionRules(data.blockedSites || []);
-      } else {
-        updates.focusModeStartTime = null;
-        await clearDistractionRules();
-      }
+      const updates = {
+        focusModeEnabled: msg.enabled,
+        focusModeStartTime: msg.enabled ? Date.now() : null
+      };
+      // Turning focus on starts a clean slate — drop any stale per-site breaks.
+      if (msg.enabled) updates.siteBreaks = {};
       await chrome.storage.local.set(updates);
+      // distractionState refreshes via storage.onChanged.
       return { success: true };
     }
 
@@ -388,26 +423,28 @@ async function handleMessage(msg) {
 
     case "updateBlockedSites": {
       await chrome.storage.local.set({ blockedSites: msg.sites });
-      const data = await chrome.storage.local.get("focusModeEnabled");
-      if (data.focusModeEnabled) {
-        await updateDistractionRules(msg.sites);
-      }
+      // distractionState refreshes via storage.onChanged.
       return { success: true };
     }
 
     case "takeBreak": {
       const data = await chrome.storage.local.get([
-        "blockedSites",
-        "focusModeEnabled"
+        "focusModeEnabled",
+        "siteBreaks"
       ]);
       if (!data.focusModeEnabled) return { success: true };
 
-      const sites = data.blockedSites || [];
-      const filtered = sites.filter((s) => s !== msg.site);
-      await updateDistractionRules(filtered);
-
-      // Use chrome.alarms instead of setTimeout (survives worker suspension)
-      chrome.alarms.create("breakEnd_" + msg.site, { delayInMinutes: 5 });
+      // Grant this one site a 5-minute pass. onBeforeNavigate checks the
+      // timestamp on each navigation, so the break simply expires — no alarm
+      // needed, and it re-blocks on the next visit after 5 minutes.
+      const breaks = data.siteBreaks || {};
+      breaks[msg.site] = Date.now() + 5 * 60 * 1000;
+      await chrome.storage.local.set({ siteBreaks: breaks });
+      // Refresh the cache BEFORE returning: the block page navigates to the
+      // site the instant this resolves, and onBeforeNavigate must see the new
+      // break — otherwise it bounces the user straight back to the block page.
+      // (Can't rely on the async storage.onChanged refresh winning that race.)
+      await loadDistractionState();
 
       return { success: true };
     }
