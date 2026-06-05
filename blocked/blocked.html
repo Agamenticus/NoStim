@@ -191,11 +191,11 @@
     /* Keep the label on one line so the countdown ↔ action swap doesn't reflow */
     .break-btn { white-space: nowrap; }
 
-    /* --- Innkeeper cooldown sprite (medieval theme only) --- */
+    /* --- Tavernkeeper cooldown sprite (medieval theme only) --- */
     /* A small cloaked figure walks in from the left during the cooldown and
        tucks BEHIND the button. z-index:-1 keeps him in front of the card
        background but behind all text + the button, so copy stays legible. */
-    .innkeeper {
+    .tavernkeeper {
       position: absolute;
       left: 50%;
       bottom: 20px;
@@ -210,23 +210,23 @@
       display: none;
       transform: translateX(calc(-50% - 54vw)); /* start just off the left edge */
     }
-    [data-theme="medieval"] .innkeeper { display: block; }
+    [data-theme="medieval"] .tavernkeeper { display: block; }
 
-    .innkeeper-sprite {
+    .tavernkeeper-sprite {
       width: 100%;
       height: 100%;
-      background: url("innkeeper-walk-1.png") center bottom / contain no-repeat;
+      background: url("tavernkeeper-walk-1.png") center bottom / contain no-repeat;
       transition: transform 0.14s ease;
     }
-    .innkeeper-sprite.step { background-image: url("innkeeper-walk-2.png"); }
-    .innkeeper-sprite.bob  { transform: translateY(-3px); }
+    .tavernkeeper-sprite.step { background-image: url("tavernkeeper-walk-2.png"); }
+    .tavernkeeper-sprite.bob  { transform: translateY(-3px); }
 
     @media (prefers-reduced-motion: reduce) {
       body { transition: opacity 0.2s ease; }
       .card { transition: opacity 0.2s ease; transform: none; }
       .badge, body::before { animation: none; }
-      .innkeeper { transition: none !important; }
-      .innkeeper-sprite { transition: none; }
+      .tavernkeeper { transition: none !important; }
+      .tavernkeeper-sprite { transition: none; }
     }
   </style>
 </head>
@@ -270,8 +270,8 @@
 
     <button class="break-btn" id="break-btn" disabled>Take a 5-minute break</button>
 
-    <div class="innkeeper" id="innkeeper" aria-hidden="true">
-      <div class="innkeeper-sprite" id="innkeeper-sprite"></div>
+    <div class="tavernkeeper" id="tavernkeeper" aria-hidden="true">
+      <div class="tavernkeeper-sprite" id="tavernkeeper-sprite"></div>
     </div>
   </div>
 

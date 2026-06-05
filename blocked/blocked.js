@@ -22,7 +22,7 @@ const CONTENT = {
     siteNote: "Thou sought passage to ",
     breakLabel: "Rest at the tavern — 5 min",
     breakStarted: "The tavern welcomes thee — 5 min",
-    cooldownLabel: "The innkeeper arrives in",
+    cooldownLabel: "The tavernkeeper arrives in",
   },
   earth: {
     title: "Stay grounded",
@@ -73,16 +73,16 @@ function startTimer(startTime) {
 }
 
 // --- Friction: cooldown before the break button unlocks ---
-// The button stays disabled for COOLDOWN_MS. On the medieval theme an innkeeper
-// walks in from the left (appearing after INNKEEPER_DELAY_MS) and tucks behind
+// The button stays disabled for COOLDOWN_MS. On the medieval theme an tavernkeeper
+// walks in from the left (appearing after TAVERNKEEPER_DELAY_MS) and tucks behind
 // the button just as it unlocks. Wall-clock based so a throttled/background
 // tab can't desync the timer; resets on reload (reloading only adds friction).
 const COOLDOWN_MS = 20000;
-const INNKEEPER_DELAY_MS = 5000;
+const TAVERNKEEPER_DELAY_MS = 5000;
 
 const breakBtn = $("break-btn");
-const innkeeper = $("innkeeper");
-const innkeeperSprite = $("innkeeper-sprite");
+const tavernkeeper = $("tavernkeeper");
+const tavernkeeperSprite = $("tavernkeeper-sprite");
 const prefersReducedMotion =
   !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
 
@@ -111,12 +111,12 @@ function startCooldown() {
   tick();
   cooldownInterval = setInterval(tick, 250);
 
-  // Walking innkeeper is medieval-only and motion-gated.
+  // Walking tavernkeeper is medieval-only and motion-gated.
   if (document.documentElement.dataset.theme !== "medieval") return;
   if (prefersReducedMotion) {
-    placeInnkeeperStanding();
+    placeTavernkeeperStanding();
   } else {
-    setTimeout(startInnkeeperWalk, INNKEEPER_DELAY_MS);
+    setTimeout(startTavernkeeperWalk, TAVERNKEEPER_DELAY_MS);
   }
 }
 
@@ -127,48 +127,48 @@ function unlockBreak() {
     clearInterval(cooldownInterval);
     cooldownInterval = null;
   }
-  stopInnkeeper();
+  stopTavernkeeper();
   breakBtn.disabled = false;
   breakBtn.textContent = copy.breakLabel;
 }
 
-function startInnkeeperWalk() {
+function startTavernkeeperWalk() {
   if (unlocked) return; // cooldown already elapsed (e.g. very fast/virtual clock)
-  const walkMs = COOLDOWN_MS - INNKEEPER_DELAY_MS;
+  const walkMs = COOLDOWN_MS - TAVERNKEEPER_DELAY_MS;
   // Pin the off-screen start, force a reflow, then transition to centered so
   // the browser actually animates rather than jumping straight to the end.
-  innkeeper.style.transition = "none";
-  innkeeper.style.transform = "translateX(calc(-50% - 54vw))";
-  innkeeper.style.opacity = "1";
-  void innkeeper.offsetWidth;
-  innkeeper.style.transition = "transform " + walkMs + "ms linear";
-  innkeeper.style.transform = "translateX(-50%)";
+  tavernkeeper.style.transition = "none";
+  tavernkeeper.style.transform = "translateX(calc(-50% - 54vw))";
+  tavernkeeper.style.opacity = "1";
+  void tavernkeeper.offsetWidth;
+  tavernkeeper.style.transition = "transform " + walkMs + "ms linear";
+  tavernkeeper.style.transform = "translateX(-50%)";
 
   // Two-frame walk cycle: alternate stride + a small bob so he reads as walking.
   let toggle = false;
   stepInterval = setInterval(() => {
     toggle = !toggle;
-    innkeeperSprite.classList.toggle("step", toggle);
-    innkeeperSprite.classList.toggle("bob", toggle);
+    tavernkeeperSprite.classList.toggle("step", toggle);
+    tavernkeeperSprite.classList.toggle("bob", toggle);
   }, 280);
 }
 
-function stopInnkeeper() {
+function stopTavernkeeper() {
   if (stepInterval) {
     clearInterval(stepInterval);
     stepInterval = null;
   }
   // Settle into a standing pose (feet-together frame), no bob.
-  innkeeperSprite.classList.remove("bob");
-  innkeeperSprite.classList.add("step");
+  tavernkeeperSprite.classList.remove("bob");
+  tavernkeeperSprite.classList.add("step");
 }
 
-function placeInnkeeperStanding() {
+function placeTavernkeeperStanding() {
   // Reduced-motion: no walk-in — he's simply present, standing behind the button.
-  innkeeper.style.transition = "none";
-  innkeeper.style.transform = "translateX(-50%)";
-  innkeeper.style.opacity = "1";
-  innkeeperSprite.classList.add("step");
+  tavernkeeper.style.transition = "none";
+  tavernkeeper.style.transform = "translateX(-50%)";
+  tavernkeeper.style.opacity = "1";
+  tavernkeeperSprite.classList.add("step");
 }
 
 // --- Break button ---
