@@ -170,8 +170,13 @@ chrome.webNavigation.onBeforeNavigate.addListener(async (details) => {
   // Honor an active 5-minute break for this site.
   if ((state.breaks[site] || 0) > Date.now()) return;
 
+  // Pass the full original URL too, so "rest at the tavern" returns the user to
+  // the exact page they were headed to (e.g. a specific video), not the bare domain.
   const target = chrome.runtime.getURL(
-    "blocked/blocked.html?site=" + encodeURIComponent(site)
+    "blocked/blocked.html?site=" +
+      encodeURIComponent(site) +
+      "&url=" +
+      encodeURIComponent(details.url)
   );
   // Browser-initiated navigation — no web_accessible_resources required.
   // Swallow rejections: the tab may be gone/discarded/prerendered by now.

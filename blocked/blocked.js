@@ -2,6 +2,28 @@
 
 const params = new URLSearchParams(window.location.search);
 const site = params.get("site") || "this site";
+const origUrl = params.get("url"); // the exact page the user was headed to
+
+// Where "rest at the tavern" should send the user. Prefer the exact original
+// URL, but only if it's http(s) AND its host matches the blocked site — so the
+// block page can never be coaxed into a javascript:/data: nav or an off-site
+// redirect. Falls back to the bare domain.
+function breakTarget() {
+  const s = String(site).toLowerCase().replace(/^www\./, "");
+  if (origUrl) {
+    try {
+      const u = new URL(origUrl);
+      const h = u.hostname.toLowerCase();
+      if (/^https?:$/.test(u.protocol) && (h === s || h.endsWith("." + s))) {
+        return origUrl;
+      }
+    } catch (_) {
+      /* fall through to bare domain */
+    }
+  }
+  const domainPattern = /^[a-z0-9]([a-z0-9.-]*[a-z0-9])?\.[a-z]{2,}$/i;
+  return domainPattern.test(site) ? "https://" + site : null;
+}
 
 // --- Theme-specific copy (mirrors the popup's voice) ---
 // dark, light and default share the clean copy; medieval & earth get character.
@@ -179,10 +201,9 @@ breakBtn.addEventListener("click", async function () {
 
   await chrome.runtime.sendMessage({ type: "takeBreak", site: site });
 
-  // Validate site looks like a domain before navigating
-  const domainPattern = /^[a-z0-9]([a-z0-9.-]*[a-z0-9])?\.[a-z]{2,}$/i;
-  if (domainPattern.test(site)) {
-    window.location.href = "https://" + site;
+  const target = breakTarget();
+  if (target) {
+    window.location.href = target;
   }
 });
 
